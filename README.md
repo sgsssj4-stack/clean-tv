@@ -8,12 +8,12 @@ A fork of [CleanYourTV](https://github.com/Gathin23/cleanyourtv) (MIT, by Gathin
 
 <table>
   <tr>
-    <td><img src="docs/clean-tv/home-diwali.jpg" alt="Home during Diwali, with a festival wallpaper behind the glass"></td>
+    <td><img src="docs/clean-tv/home-holi.jpg" alt="Home during Holi, with a festival wallpaper behind the glass"></td>
     <td><img src="docs/clean-tv/settings.jpg" alt="The two-column Settings screen: TV settings, Inputs, Wallpaper, Default home, layout, glass opacity and Home options"></td>
     <td><img src="docs/clean-tv/settings-wallpaper.jpg" alt="The Wallpaper settings screen: themes for every day and each festival, how often the picture changes, order, and which pictures are in the rotation"></td>
   </tr>
   <tr>
-    <td align="center">A festival wallpaper (Diwali)</td>
+    <td align="center">A festival wallpaper (Holi)</td>
     <td align="center">Settings</td>
     <td align="center">Wallpaper settings</td>
   </tr>
