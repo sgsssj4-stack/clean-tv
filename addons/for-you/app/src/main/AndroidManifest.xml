@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:ignore="MissingLeanbackLauncher">
+    <!-- No screen of its own: it only feeds the home screen through its provider. -->
+
+    <uses-feature android:name="android.software.leanback" android:required="false" />
+    <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
+
+    <!-- The rows apps publish to the system's Continue watching and preview channels (docs/watch-next.md).
+         A runtime permission: grant it once with `pm grant com.gathin.tvhome.foryou android.permission.READ_TV_LISTINGS`. -->
+    <uses-permission android:name="android.permission.READ_TV_LISTINGS" />
+    <!-- To download those rows' poster pictures (https:// links) and to look titles up on IMDb for their ratings. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <queries>
+        <provider android:authorities="android.media.tv" />
+    </queries>
+
+    <application
+        android:allowBackup="false"
+        android:icon="@drawable/banner"
+        android:label="@string/app_name"
+        tools:ignore="MissingApplicationIcon">
+
+        <!-- The dashboard home's For you posters, read by com.gathin.tvhome: titles, posters, IMDb ratings. -->
+        <provider
+            android:name=".ForYouProvider"
+            android:authorities="com.gathin.tvhome.foryou.provider"
+            android:exported="true"
+            tools:ignore="ExportedContentProvider" />
+
+        <!-- Notification access, only to see which title is playing in which app (media sessions), for For you.
+             Grant once: cmd notification allow_listener com.gathin.tvhome.foryou/.NowPlayingListener -->
+        <service
+            android:name=".NowPlayingListener"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+        </service>
+    </application>
+</manifest>

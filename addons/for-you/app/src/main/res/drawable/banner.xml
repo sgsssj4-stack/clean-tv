@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Three poster cards on a night-blue ground. Drawn for this add-on. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="320dp" android:height="180dp"
+    android:viewportWidth="320" android:viewportHeight="180">
+    <path android:fillColor="#FF14213A" android:pathData="M0,0h320v180h-320z" />
+    <path android:fillColor="#FF5B7CFA" android:pathData="M88,40h44a8,8 0,0 1,8 8v84a8,8 0,0 1,-8 8h-44a8,8 0,0 1,-8 -8v-84a8,8 0,0 1,8 -8z" />
+    <path android:fillColor="#FFF472B6" android:pathData="M148,30h44a8,8 0,0 1,8 8v104a8,8 0,0 1,-8 8h-44a8,8 0,0 1,-8 -8v-104a8,8 0,0 1,8 -8z" />
+    <path android:fillColor="#FF34D399" android:pathData="M208,40h44a8,8 0,0 1,8 8v84a8,8 0,0 1,-8 8h-44a8,8 0,0 1,-8 -8v-84a8,8 0,0 1,8 -8z" />
+</vector>

@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Apple-style Festive Screensaver (ClockDream): big clock, greeting, date and Vikram Samvat calendar with pop-out depth shadows -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FF000000">
+
+    <!-- The glow is its background; clock_wallpaper puts the picture in it, cropped like Home's. -->
+    <ImageView
+        android:id="@+id/dreamAmbient"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        android:importantForAccessibility="no" />
+
+    <LinearLayout
+        android:id="@+id/dreamContent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:orientation="vertical">
+
+        <!-- Festive greeting above the clock (e.g. "HAPPY DIWALI") with subtle depth shadow -->
+        <TextView
+            android:id="@+id/dreamGreeting"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:gravity="center"
+            android:layout_marginBottom="6dp"
+            android:textColor="#FFB23C"
+            android:textSize="22sp"
+            android:fontFamily="@string/font_medium"
+            android:letterSpacing="0.08"
+            android:textAllCaps="true"
+            android:shadowColor="#CC000000"
+            android:shadowDx="0"
+            android:shadowDy="3"
+            android:shadowRadius="8"
+            android:visibility="gone" />
+
+        <!-- Date line (e.g. "Saturday, 24 October" / "SATURDAY, 4 NOVEMBER") with subtle depth shadow -->
+        <TextClock
+            android:id="@+id/date"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:gravity="center"
+            android:layout_marginBottom="4dp"
+            android:format12Hour="@string/date_format"
+            android:format24Hour="@string/date_format"
+            android:textColor="#D9FFFFFF"
+            android:textSize="18sp"
+            android:fontFamily="@string/font_regular"
+            android:letterSpacing="0.14"
+            android:textAllCaps="true"
+            android:shadowColor="#CC000000"
+            android:shadowDx="0"
+            android:shadowDy="3"
+            android:shadowRadius="8" />
+
+        <!-- Vikram Samvat calendar line under the date with subtle depth shadow -->
+        <TextView
+            android:id="@+id/dreamVikramDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:gravity="center"
+            android:layout_marginBottom="12dp"
+            android:textColor="#E6FFB23C"
+            android:textSize="14sp"
+            android:fontFamily="@string/font_regular"
+            android:letterSpacing="0.12"
+            android:textAllCaps="true"
+            android:shadowColor="#CC000000"
+            android:shadowDx="0"
+            android:shadowDy="2"
+            android:shadowRadius="6"
+            android:visibility="gone" />
+
+        <!-- Apple-style Big Clock with flip numbers & rich 3D pop-out shadow -->
+        <LinearLayout
+            android:id="@+id/dreamClockRow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:baselineAligned="true">
+
+            <TextView
+                android:id="@+id/dreamHour"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#FFFFFFFF"
+                android:textSize="136sp"
+                android:fontFamily="@string/font_regular"
+                android:letterSpacing="-0.03"
+                android:includeFontPadding="false"
+                android:shadowColor="#E6000000"
+                android:shadowDx="0"
+                android:shadowDy="6"
+                android:shadowRadius="16" />
+
+            <TextView
+                android:id="@+id/dreamColon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=":"
+                android:textColor="#FFFFFFFF"
+                android:textSize="136sp"
+                android:fontFamily="@string/font_regular"
+                android:letterSpacing="-0.03"
+                android:includeFontPadding="false"
+                android:shadowColor="#E6000000"
+                android:shadowDx="0"
+                android:shadowDy="6"
+                android:shadowRadius="16" />
+
+            <TextView
+                android:id="@+id/dreamMinute"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#FFFFFFFF"
+                android:textSize="136sp"
+                android:fontFamily="@string/font_regular"
+                android:letterSpacing="-0.03"
+                android:includeFontPadding="false"
+                android:shadowColor="#E6000000"
+                android:shadowDx="0"
+                android:shadowDy="6"
+                android:shadowRadius="16" />
+
+            <TextView
+                android:id="@+id/dreamAmPm"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:textColor="#B3FFFFFF"
+                android:textSize="26sp"
+                android:fontFamily="@string/font_medium"
+                android:letterSpacing="0.08"
+                android:textAllCaps="true"
+                android:shadowColor="#B3000000"
+                android:shadowDx="0"
+                android:shadowDy="3"
+                android:shadowRadius="8" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Apple-style bottom prompt ("Press OK to open") with subtle shadow -->
+    <TextView
+        android:id="@+id/dreamHint"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="36dp"
+        android:text="Press OK to open"
+        android:textColor="#80FFFFFF"
+        android:textSize="14sp"
+        android:fontFamily="@string/font_regular"
+        android:letterSpacing="0.06"
+        android:shadowColor="#CC000000"
+        android:shadowDx="0"
+        android:shadowDy="2"
+        android:shadowRadius="6" />
+
+</FrameLayout>

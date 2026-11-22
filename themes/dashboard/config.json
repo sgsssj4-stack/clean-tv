@@ -1,0 +1,21 @@
+{
+  "home_layout": "dashboard",
+  "weather_city": "Delhi NCR",
+  "greeting_name": "",
+  "background_color": "#050A1C",
+  "wallpaper": true,
+  "wallpaper_rotation_minutes": 10,
+  "dock_apps": [
+    "com.google.android.youtube.tv",
+    "com.netflix.ninja",
+    "com.amazon.amazonvideo.livingroom",
+    "in.startv.hotstar",
+    "com.jio.media.stb.ondemand",
+    "com.android.vending",
+    "com.android.tv.settings"
+  ],
+  "wallpaper_order": "sequential",
+  "home_idle_clock_minutes": 2,
+  "clock_wallpaper": true,
+  "clock_wallpaper_dim": 40
+}

@@ -1,0 +1,50 @@
+plugins {
+    id 'com.android.application'
+}
+
+// Signed with the same release key as the launcher (kept outside the repo); without it, the debug key.
+def signingFile = new File(System.getProperty('user.home'), 'cleanyourtv-backup/keys/signing.properties')
+def signing = new Properties()
+if (signingFile.isFile()) signingFile.withInputStream { signing.load(it) }
+
+android {
+    namespace 'com.gathin.tvhome.foryou'
+    compileSdk 34
+
+    signingConfigs {
+        if (signing.getProperty('storeFile')) {
+            release {
+                storeFile file(signing.getProperty('storeFile'))
+                storePassword signing.getProperty('storePassword')
+                keyAlias signing.getProperty('keyAlias')
+                keyPassword signing.getProperty('keyPassword')
+            }
+        }
+    }
+
+    defaultConfig {
+        applicationId 'com.gathin.tvhome.foryou'
+        minSdk 26
+        targetSdk 34
+        versionCode 1
+        versionName '1.0'
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt')
+            signingConfig signing.getProperty('storeFile') ? signingConfigs.release : signingConfigs.debug
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    testImplementation 'junit:junit:4.13.2'
+}

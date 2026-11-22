@@ -1,0 +1,12 @@
+[
+  {"name": "christmas", "from": "2026-12-23", "to": "2026-12-30", "collection": "christmas",
+   "greeting": "Merry Christmas", "accent": "#E0463C", "rotation_minutes": 10, "order": "sequential"},
+  {"name": "new-year", "from": "2026-12-31", "to": "2027-01-07", "collection": "new-year",
+   "greeting": "Happy New Year", "accent": "#FFD166", "rotation_minutes": 10, "order": "sequential"},
+  {"name": "holi", "from": "2027-03-19", "to": "2027-03-24", "collection": "holi",
+   "greeting": "Happy Holi", "accent": "#FF4FA3", "rotation_minutes": 10, "order": "sequential"},
+  {"name": "dussehra", "from": "2027-10-06", "to": "2027-10-11", "collection": "dussehra",
+   "greeting": "Happy Dussehra", "accent": "#FF9933", "rotation_minutes": 10, "order": "sequential"},
+  {"name": "diwali", "from": "2027-10-25", "to": "2027-11-02", "collection": "diwali",
+   "greeting": "Happy Diwali", "accent": "#FFB23C", "rotation_minutes": 10, "order": "sequential"}
+]
