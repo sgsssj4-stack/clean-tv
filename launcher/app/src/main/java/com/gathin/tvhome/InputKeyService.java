@@ -3,6 +3,7 @@ package com.gathin.tvhome;
 import android.accessibilityservice.AccessibilityService;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.accessibility.AccessibilityEvent;
 import java.util.Collections;
@@ -31,12 +32,21 @@ public class InputKeyService extends AccessibilityService {
     private boolean consumeVolumeKeys;
     /** Stops key filtering while a game controller is connected; null unless gamepad_passthrough and key_filter. */
     private GamepadPassthrough gamepads;
+    /**
+     * Key-learn mode for tools/setup_wizard.py: while the file files/key-learn exists (checked when the service
+     * connects), every button press is logged as "TvHomeKeyLearn: keycode=... name=... scancode=..." so the wizard
+     * can tell which code a button sends. Keys still pass through as usual.
+     */
+    static final String KEY_LEARN_FILE = "key-learn";
+    static final String KEY_LEARN_TAG = "TvHomeKeyLearn";
+    private boolean keyLearn;
 
     @Override
     protected void onServiceConnected() {
         super.onServiceConnected();
         // From config.xml or a theme's config.json; theme.sh rebinds this service after a push.
         Config config = Config.load(this);
+        keyLearn = new java.io.File(Config.dir(this), KEY_LEARN_FILE).isFile();
         // restore_key_services: note that this helper runs, so Home can put it back after a force stop.
         repairRecord = config.restoreKeyServices;
         if (repairRecord) ServiceRepair.connected(this, getClass());
@@ -62,6 +72,10 @@ public class InputKeyService extends AccessibilityService {
 
     @Override
     protected boolean onKeyEvent(KeyEvent event) {
+        if (keyLearn && event.getAction() == KeyEvent.ACTION_DOWN && event.getRepeatCount() == 0) {
+            Log.i(KEY_LEARN_TAG, "keycode=" + event.getKeyCode() + " name=" + KeyEvent.keyCodeToString(event.getKeyCode())
+                    + " scancode=" + event.getScanCode());
+        }
         if (consumeVolumeKeys && VolumeKeys.handle(this, event)) return true;
         // A scancode entry is more specific than any keycode, so it goes first.
         if (RemoteKeys.handle(this, event, appScancodes.get(event.getScanCode()),
