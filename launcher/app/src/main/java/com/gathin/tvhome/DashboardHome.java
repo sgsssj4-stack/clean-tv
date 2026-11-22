@@ -138,8 +138,10 @@ final class DashboardHome extends FrameLayout implements WallpaperPlayer.Listene
     static final class Item {
         final String title, subtitle, pkg, intentUri, poster, kind;
         final File posterFile;
-        /** An IMDb rating such as "7.4" from the feed add-on, or "". */
+        /** A rating such as "7.4" from the feed add-on, or "". */
         String imdb = "";
+        /** Who gave the rating: "IMDb" (the default) or "TMDB". */
+        String ratingLabel = "IMDb";
         /** 0..1000, or -1 when the app did not say. */
         final int progress;
 
@@ -557,7 +559,8 @@ final class DashboardHome extends FrameLayout implements WallpaperPlayer.Listene
                 int title = cursor.getColumnIndex("title"), sub = cursor.getColumnIndex("subtitle"),
                         pkg = cursor.getColumnIndex("package"), link = cursor.getColumnIndex("intent_uri"),
                         poster = cursor.getColumnIndex("poster"), progress = cursor.getColumnIndex("progress"),
-                        kind = cursor.getColumnIndex("kind"), imdb = cursor.getColumnIndex("imdb");
+                        kind = cursor.getColumnIndex("kind"), imdb = cursor.getColumnIndex("imdb"),
+                        label = cursor.getColumnIndex("rating_label");
                 if (title < 0 || pkg < 0) return out;
                 while (cursor.moveToNext() && out.size() < 24) {
                     String t = Cards.cleanLabel(str(cursor, title), "");
@@ -567,6 +570,7 @@ final class DashboardHome extends FrameLayout implements WallpaperPlayer.Listene
                             null, progress < 0 ? -1 : cursor.getInt(progress), str(cursor, kind));
                     String r = str(cursor, imdb);
                     if (r.matches("\\d{1,2}\\.\\d")) item.imdb = r;
+                    if (label >= 0 && "TMDB".equals(str(cursor, label))) item.ratingLabel = "TMDB";
                     out.add(item);
                 }
             }
@@ -680,14 +684,15 @@ final class DashboardHome extends FrameLayout implements WallpaperPlayer.Listene
         }
         if (!it.imdb.isEmpty()) {
             TextView rating = new TextView(getContext());
-            rating.setText("IMDb " + it.imdb);
+            boolean tmdb = "TMDB".equals(it.ratingLabel);
+            rating.setText(it.ratingLabel + " " + it.imdb);
             rating.setTextSize(TypedValue.COMPLEX_UNIT_SP, small ? 9 : 10);
             rating.setTypeface(medium);
             rating.setTextColor(0xFF000000);
             rating.setPadding(dp(6), dp(1), dp(6), dp(2));
             GradientDrawable pill = new GradientDrawable();
             pill.setCornerRadius(dp(5));
-            pill.setColor(0xFFF5C518);   // IMDb yellow
+            pill.setColor(tmdb ? 0xFF90CEA1 : 0xFFF5C518);   // TMDB green, IMDb yellow
             rating.setBackground(pill);
             FrameLayout.LayoutParams rl = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
                     ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.TOP | Gravity.END);

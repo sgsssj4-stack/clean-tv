@@ -42,7 +42,7 @@ import java.util.regex.Pattern;
  *
  * Columns: {@code title}, {@code subtitle}, {@code package}, {@code intent_uri}, {@code poster} (a content:// URI
  * or ""), {@code progress} (0-1000, or -1), {@code kind} ("continue", "next", "new", "recent" or "pick"),
- * {@code imdb} (an IMDb rating such as "7.4", or "").
+ * {@code imdb} (a rating such as "7.4", or ""), {@code rating_label} (who gave it: "IMDb" or "TMDB"; see {@link Ratings}).
  *
  * Besides the TV provider's rows, titles seen playing by {@link NowPlayingListener} ({@link History}) count as
  * Continue watching, so apps that publish nothing there still show up.
@@ -53,7 +53,7 @@ import java.util.regex.Pattern;
 public final class ForYouProvider extends ContentProvider {
     private static final String TAG = "ForYou";
     private static final String AUTHORITY = "com.gathin.tvhome.foryou.provider";
-    private static final String[] COLUMNS = {"_id", "title", "subtitle", "package", "intent_uri", "poster", "progress", "kind", "imdb"};
+    private static final String[] COLUMNS = {"_id", "title", "subtitle", "package", "intent_uri", "poster", "progress", "kind", "imdb", "rating_label"};
     private static final long FRESH_MS = 30 * 60_000L;
     private static final long WATCH_NEXT_MAX_AGE_MS = 60L * 24 * 60 * 60_000L;
     private static final int MAX_TITLES = 16, PER_APP = 4;
@@ -88,7 +88,7 @@ public final class ForYouProvider extends ContentProvider {
 
     static final class Item {
         String title = "", subtitle = "", pkg = "", intentUri = "", art = "", poster = "", kind = "pick", imdb = "";
-        /** IMDb's portrait poster for the title, preferred over the app's (usually wide) art; not saved. */
+        /** The rating source's portrait poster (IMDb or TMDB) for the title, preferred over the app's (usually wide) art; not saved. */
         String tallArt = "";
         int progress = -1;
         long engaged;
@@ -123,23 +123,25 @@ public final class ForYouProvider extends ContentProvider {
     public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
         Context context = getContext();
         if (context == null) return null;
-        List<Item> items = load(context, "1".equals(uri.getQueryParameter("refresh")));
+        Ratings ratings = Ratings.load(context);
+        List<Item> items = load(context, ratings, "1".equals(uri.getQueryParameter("refresh")));
+        String label = ratings.label();
         MatrixCursor cursor = new MatrixCursor(COLUMNS, items.size());
         int id = 0;
         for (Item i : items) {
             String poster = i.poster.isEmpty() ? "" : "content://" + AUTHORITY + "/poster/" + i.poster;
-            cursor.addRow(new Object[]{id++, i.title, i.subtitle, i.pkg, i.intentUri, poster, i.progress, i.kind, i.imdb});
+            cursor.addRow(new Object[]{id++, i.title, i.subtitle, i.pkg, i.intentUri, poster, i.progress, i.kind, i.imdb, label});
         }
         return cursor;
     }
 
-    private static synchronized List<Item> load(Context context, boolean force) {
+    private static synchronized List<Item> load(Context context, Ratings ratings, boolean force) {
         File list = new File(context.getFilesDir(), "titles.json");
         List<Item> cached = read(list);
         File history = new File(context.getFilesDir(), History.FILE);
         boolean watched = history.isFile() && history.lastModified() > list.lastModified();
         if (!force && !watched && list.isFile() && System.currentTimeMillis() - list.lastModified() < FRESH_MS) {
-            Imdb.apply(context, cached);
+            ratings.apply(context, cached);
             return cached;
         }
         List<Item> fresh;
@@ -152,7 +154,7 @@ public final class ForYouProvider extends ContentProvider {
             Log.w(TAG, "reading the TV provider failed", e);
             return cached;
         }
-        Imdb.rate(context, fresh);
+        ratings.rate(context, fresh);
         for (Item i : fresh) {
             if (!i.tallArt.isEmpty()) {   // a real poster beats the app's wide still
                 i.art = i.tallArt;

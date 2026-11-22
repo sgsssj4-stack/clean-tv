@@ -23,29 +23,31 @@ A fork of [CleanYourTV](https://github.com/Gathin23/cleanyourtv) (MIT, by Gathin
 
 ## What this fork adds
 
-- **Dashboard Home** (`themes/dashboard`): frosted glass panels over a rotating wallpaper, with a big clock, sunrise and sunset, weather with India's CPCB AQI, a 5-app dock, a **For You** shelf of IMDb-rated posters, an optional **Arcade** panel, Search and Ask (voice assistant) pills. Everything fades when idle so the wallpaper shows.
+- **Dashboard Home** (`themes/dashboard`): frosted glass panels over a rotating wallpaper, with a big clock, sunrise and sunset, weather with India's CPCB AQI, a 5-app dock, a **For You** shelf of rated posters (IMDb or TMDB, your choice), an optional **Arcade** panel, Search and Ask (voice assistant) pills. Everything fades when idle so the wallpaper shows.
 - **Redesigned Settings** (two columns): Home layout, segments, glass opacity (a real see-through control), clock format, timings, and a wallpaper screen with themes, thumbnails, interval and order.
 - **Remote shortcut buttons that work again** when the stock launcher is disabled: Settings, YouTube, Prime Video, Hotstar, Cricket/SonyLIV, Cinema/Zee5 and the assistant button, via `app_keys` in the theme config (see `themes/README.md`). Action words include `homesettings` (the launcher's own Settings) and `assist`.
 - **Festivals**: Diwali decorations and the Vikram Samvat date; seasonal wallpapers.
-- **Add-ons**: weather (Open-Meteo, AQI on the Indian scale), For You (IMDb ratings) and a scoreboard (screen-time stats).
-- **Setup wizard** (`tools/setup_wizard.py`): asks a few questions and sets up the TV: your name and city, how many apps go in the dock and which (suggested from what is installed), holidays with ON and OFF dates (and your own), wallpapers, glass, idle fade, clock screensaver, Arcade, and last of all the remote buttons, which you check one by one at your own pace and fix by pressing them.
+- **Add-ons**: weather (Open-Meteo, AQI on the Indian scale), For You (ratings and posters from IMDb or TMDB) and a scoreboard (screen-time stats).
+- **Setup wizard** (`tools/setup_wizard.py`): asks a few questions and sets up the TV: your name and city, how many apps go in the dock and which (suggested from what is installed), holidays with ON and OFF dates (and your own), wallpapers, glass, idle fade, clock screensaver, Arcade, IMDb or TMDB ratings, and last of all the remote buttons, which you check one by one at your own pace and fix by pressing them.
 - **`tools/clone-tv.sh`**: copy a finished setup from one TV to another of the same model (`capture`, `setup`, `check`).
 
 ## Use it on your TV
 
 1. Turn on Developer options and Network debugging on the TV, and note its IP address.
 2. Install Android Studio (for its JDK and SDK) and `adb`, on a computer on the same Wi-Fi.
-3. Build the launcher: `cd launcher && ./gradlew assembleRelease`. Without a signing file it uses the debug key. To sign with your own key, put a `signing.properties` (storeFile, storePassword, keyAlias, keyPassword) at `~/cleanyourtv-backup/keys/signing.properties`, and keep that key: later updates only install over a launcher signed with the same key.
-4. `adb connect <tv-ip>:5555`, `adb install -r launcher/app/build/outputs/apk/release/app-release.apk`, then push the dashboard theme: `TV_HOST=<tv-ip> tools/theme.sh themes/dashboard`.
-5. Run the setup wizard: `python3 tools/setup_wizard.py <tv-ip>` (Python 3.8+, nothing to install). It asks:
+3. Build the launcher: `cd launcher && ./gradlew assembleRelease`, and the add-ons you want the same way (`addons/weather`, `addons/for-you`). Without a signing file it uses the debug key. To sign with your own key, put a `signing.properties` (storeFile, storePassword, keyAlias, keyPassword) at `~/cleanyourtv-backup/keys/signing.properties`, and keep that key: later updates only install over a launcher signed with the same key.
+4. Run the setup wizard: `python3 tools/setup_wizard.py <tv-ip>` (Python 3.8+, nothing to install). It installs the launcher and the add-ons you built if they aren't on the TV yet (or updates them if you say so), gives them the permissions they need, makes Clean TV the Home app, and then asks:
    - your name for the greeting, the city for the weather, 12- or 24-hour clock;
    - how many apps in the dock (3 to 7) and which ones, in order; popular apps that are installed are suggested first;
    - holidays, one by one: ON or OFF, the dates each starts and ends, its greeting; add birthdays or anything else of your own. Festivals that follow the moon (Holi, Eid, Diwali...) move every year, so check those dates;
    - wallpapers: picture sets from `themes/`, a folder of your own pictures, or what is already on the TV; how often they change and in what order; optional pictures per holiday;
    - glass opacity, fade when idle, the clock screensaver, the Arcade panel, the greeting;
+   - where the For You ratings and posters come from: **IMDb** (nothing to sign up for), **TMDB** (needs your own free API key from themoviedb.org, Settings > API) or none. ⚠️ Some Indian internet providers, Jio among them, block TMDB; if yours does, no ratings or posters show, so run the wizard again and pick IMDb;
    - remote buttons, last. Take as long as you need to try every button. When one does nothing (often the coloured and app buttons once the stock home screen is off), choose *map a button*, press it, and pick what it should do: open an app, the launcher's Settings, the TV's settings, the assistant, All apps, mute, sleep... on a short press or a long press. It works straight away so you can test it, and you can remove a mapping again.
 
    Answers are saved in `~/.clean-tv/`, so running the wizard again starts from your last choices. `python3 tools/setup_wizard.py --offline <folder>` writes the files to a folder instead, to look at without a TV. You can still edit `themes/dashboard/config.json` by hand (the default city is Delhi NCR).
+
+With TMDB on, the For You add-on uses the TMDB API but is not endorsed or certified by TMDB. IMDb ratings come from IMDb's public datasets (personal, non-commercial use).
 
 The rest of this README is the original project's.
 

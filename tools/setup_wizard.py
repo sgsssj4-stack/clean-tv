@@ -10,11 +10,13 @@ It asks, in order:
   2. how many apps go in the dock and which ones (suggestions come from what's installed)
   3. holidays: each one ON or OFF, with the dates it starts and ends (and add your own)
   4. wallpapers: picture sets from this repo's themes and/or a folder of your own, how often they change
-  5. other options: glass opacity, fade when idle, clock screensaver, Arcade panel
+  5. other options: glass opacity, fade when idle, clock screensaver, Arcade panel, and where the For you
+     posters get their ratings (IMDb, TMDB or none)
   6. remote buttons, last: you go through every button at your own pace; any that does nothing (or not
      what you want) you press while the wizard listens, and pick what it should open. Test it straight away.
 
-Needs Python 3.8+ and adb, and the Clean TV launcher (com.gathin.tvhome) already installed: see the README.
+Needs Python 3.8+ and adb. First it installs the launcher and the add-ons you have built (see the README)
+if they aren't on the TV yet, and gives them the permissions they need.
 Answers are saved in ~/.clean-tv/<tv>.json, so running it again starts from your last choices.
 Standard library only.
 """
@@ -32,6 +34,8 @@ import time
 from pathlib import Path
 
 PKG = "com.gathin.tvhome"
+FOR_YOU = "com.gathin.tvhome.foryou"
+FOR_YOU_FILES = f"/sdcard/Android/data/{FOR_YOU}/files"
 FILES = f"/sdcard/Android/data/{PKG}/files"
 KEY_SERVICE = f"{PKG}/.InputKeyService"
 LEARN_TAG = "TvHomeKeyLearn"
@@ -196,8 +200,22 @@ class TV:
         if state != "device":
             sys.exit(f"Could not reach {self.serial}. Turn on Network debugging on the TV, accept the "
                      "'Allow debugging?' prompt on screen, and try again.")
-        if f"package:{PKG}" not in self.sh(f"pm path {PKG}"):
-            sys.exit("The Clean TV launcher is not installed on this TV yet. Build and install it first (README).")
+
+    def installed(self, pkg):
+        return f"package:{pkg}" in self.sh(f"pm path {pkg}")
+
+    def install(self, apk):
+        r = subprocess.run([self.adb, "-s", self.serial, "install", "-r", str(apk)], capture_output=True, text=True,
+                           timeout=600)
+        out = (r.stdout + r.stderr).strip()
+        if "Success" in out:
+            return True
+        if "INSTALL_FAILED_UPDATE_INCOMPATIBLE" in out:
+            say("  The copy on the TV was signed with a different key. Uninstall it first (adb uninstall <package>)")
+            say("  and run the wizard again; the launcher's settings on the TV go with it.")
+        else:
+            say("  Install failed: " + out.splitlines()[-1] if out else "  Install failed.")
+        return False
 
     def model(self):
         return self.sh("getprop ro.product.model").strip()
@@ -227,6 +245,16 @@ class TV:
         if "ok" not in ok:
             raise RuntimeError("copying the files into the launcher's folder failed")
 
+    def push_text(self, folder, name, text):
+        """Write a small text file into another app's files folder."""
+        with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as f:
+            f.write(text)
+        try:
+            self.run("push", f.name, f"/data/local/tmp/{name}", check=True)
+            self.sh(f"mkdir -p {folder} && cp /data/local/tmp/{name} {folder}/{name} && rm /data/local/tmp/{name}")
+        finally:
+            os.unlink(f.name)
+
     def rebind_keys(self):
         """(Re)start the key helper so it reads config.json and the key-learn flag again."""
         current = self.sh("settings get secure enabled_accessibility_services").strip()
@@ -241,6 +269,44 @@ class TV:
         self.sh(f"am force-stop {PKG}")
         self.sh(f"cmd package set-home-activity --user 0 {PKG}/.MainActivity")
         self.sh(f"am start -n {PKG}/.MainActivity")
+
+
+# ---- installing ---------------------------------------------------------------------------------------
+
+# package, name, built APK (see the README for building), what it is for
+APPS = [
+    (PKG, "Clean TV launcher", REPO / "launcher/app/build/outputs/apk/release/app-release.apk", "the Home screen"),
+    ("com.gathin.tvhome.weather", "Weather add-on", REPO / "addons/weather/app/build/outputs/apk/release/app-release.apk",
+     "weather and air quality on Home"),
+    (FOR_YOU, "For you add-on", REPO / "addons/for-you/app/build/outputs/apk/release/app-release.apk",
+     "the For you posters: what you were watching, with ratings"),
+]
+
+
+def install_apps(tv):
+    for pkg, name, apk, what in APPS:
+        have = tv.installed(pkg)
+        if not apk.is_file():
+            if pkg == PKG and not have:
+                sys.exit("The Clean TV launcher isn't on this TV and isn't built yet. Build it first "
+                         "(cd launcher && ./gradlew assembleRelease), then run the wizard again.")
+            if not have:
+                say(f"  {name} ({what}): not built, skipped. Build it in {apk.parents[5].relative_to(REPO)} to add it.")
+            continue
+        if have:
+            if ask_yes(f"  {name} is installed. Update it from the one built on this computer?", False):
+                say("    Updated." if tv.install(apk) else "    Kept the installed one.")
+        elif ask_yes(f"  Install the {name} ({what})?", True):
+            if not tv.install(apk) and pkg == PKG:
+                sys.exit("The launcher could not be installed, so there is nothing to set up yet.")
+    # what the apps need to work, granted over adb (the TV has no screen for these)
+    for cmd in (f"pm grant {PKG} android.permission.WRITE_SECURE_SETTINGS",
+                f"pm grant {PKG} android.permission.ACCESS_FINE_LOCATION",
+                f"cmd appops set {PKG} AUTO_START allow",
+                f"pm grant {FOR_YOU} android.permission.READ_TV_LISTINGS",
+                f"cmd notification allow_listener {FOR_YOU}/.NowPlayingListener",
+                f"cmd package set-home-activity --user 0 {PKG}/.MainActivity"):
+        tv.sh(cmd + " 2>/dev/null")
 
 
 # ---- the questions ------------------------------------------------------------------------------------
@@ -442,8 +508,42 @@ def other_options(prev):
                     prev.get("home_idle_clock_minutes", 2), 0, 1440)
     arcade = ask_yes("Show the Arcade panel (games) on Home?", prev.get("arcade_tile", True))
     greet = ask_yes("Show the greeting (Good evening...) on Home?", prev.get("show_greeting", True))
-    return {"dock_opacity": opacity, "fade_when_idle": fade, "home_idle_clock_minutes": clock,
-            "arcade_tile": arcade, "show_greeting": greet}
+    out = {"dock_opacity": opacity, "fade_when_idle": fade, "home_idle_clock_minutes": clock,
+           "arcade_tile": arcade, "show_greeting": greet}
+    out.update(ratings(prev))
+    return out
+
+
+def ratings(prev):
+    say()
+    say("For you shows what you were watching, as posters with a rating badge (needs the For you add-on).")
+    say("Where should the ratings and posters come from?")
+    source = ask_choice("Choose", [
+        ("imdb", "IMDb (works everywhere, nothing to sign up for)"),
+        ("tmdb", "TMDB (The Movie Database; needs your own free API key)"),
+        ("off", "No ratings (the apps' own pictures, no lookups)"),
+    ], prev.get("ratings", "imdb"))
+    key = prev.get("tmdb_key", "")
+    if source == "tmdb":
+        say("  Warning: some Indian internet providers (Jio among them) block TMDB. If yours does, no ratings")
+        say("  or posters will show; run the wizard again and pick IMDb.")
+        say("  Get a key at themoviedb.org: sign up, then Settings > API. The 'API Key' or the")
+        say("  'API Read Access Token' both work.")
+        while True:
+            key = ask("  TMDB key", key)
+            if re.fullmatch(r"[A-Za-z0-9._-]{20,400}", key or ""):
+                break
+            say("  That doesn't look like a TMDB key (20 or more letters and numbers).")
+        if not ask_yes("  Use TMDB even if it may be blocked?", True):
+            source = "imdb"
+    return {"ratings": source, "tmdb_key": key if source == "tmdb" else ""}
+
+
+def for_you_json(answers):
+    out = {"ratings": answers.get("ratings", "imdb")}
+    if out["ratings"] == "tmdb":
+        out["tmdb_key"] = answers.get("tmdb_key", "")
+    return out
 
 
 # ---- remote buttons -------------------------------------------------------------------------------------
@@ -625,8 +725,11 @@ def main():
         tv.connect()
         key = tv.serial.replace(":", "_")
         say(f"Connected to {tv.model()} ({tv.serial}).")
+        say(); say("━━ Apps on the TV " + "━" * 48)
+        install_apps(tv)
         installed = tv.launchable()
-        base = tv.read_json("config.json") or json.loads((THEMES / "dashboard" / "config.json").read_text())
+        on_tv = tv.read_json("config.json")
+        base = on_tv or json.loads((THEMES / "dashboard" / "config.json").read_text())
     saved_file = store / f"{key}.json"
     prev = json.loads(saved_file.read_text()) if saved_file.is_file() else {}
     if prev:
@@ -654,17 +757,28 @@ def main():
     remember()
     if offline:
         stage(args[1], answers, build_config(base, answers))
-        say(f"\nWrote the files to {args[1]} (config.json, seasons.json, collections/).")
+        (Path(args[1]) / "for-you.json").write_text(json.dumps(for_you_json(answers), indent=2))
+        say(f"\nWrote the files to {args[1]} (config.json, seasons.json, collections/, and for-you.json for the")
+        say(f"For you add-on, which goes in {FOR_YOU_FILES}/).")
         return 0
 
     say("\nSending everything to the TV (pictures can take a minute)...")
     with tempfile.TemporaryDirectory() as tmp:
         stage(tmp, answers, build_config(base, answers))
+        if not on_tv:   # a fresh TV: the dashboard theme's other files too
+            for extra in ("recommendations.json",):
+                if (THEMES / "dashboard" / extra).is_file():
+                    shutil.copy2(THEMES / "dashboard" / extra, Path(tmp) / extra)
         if answers.get("_everyday"):
             tv.sh(f"rm -rf {FILES}/collections/everyday")
         for coll in answers.get("_holiday_pictures", {}):
             tv.sh(f"rm -rf {FILES}/collections/{coll}")
         tv.push_dir(tmp)
+    if f"package:{FOR_YOU}" in tv.sh(f"pm path {FOR_YOU}"):
+        tv.push_text(FOR_YOU_FILES, "for-you.json", json.dumps(for_you_json(answers)))
+        tv.sh(f"content query --uri 'content://{FOR_YOU}.provider/titles?refresh=1' > /dev/null 2>&1")
+    elif answers.get("ratings") != "off":
+        say("Note: the For you add-on isn't installed, so the ratings choice is saved for when it is.")
     tv.restart_home()
     tv.rebind_keys()
     say("Done: Home has restarted with your choices.")
