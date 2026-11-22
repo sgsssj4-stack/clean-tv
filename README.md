@@ -2,6 +2,25 @@
 
 A fork of [CleanYourTV](https://github.com/Gathin23/cleanyourtv) (MIT, by Gathin) with a new **dashboard Home** for the launcher, built and used on Vu (Hisense-made) Android TV 11 sets in India. Everything from the original project (debloat lists, restore, themes, add-ons) is still here and works as documented below.
 
+<p align="center">
+  <img src="docs/clean-tv/home.jpg" alt="Clean TV Home: glass panels over a mountain lake wallpaper, with the clock, sunrise and sunset, weather and AQI, a For You shelf of IMDb-rated posters, an Arcade panel and a five-app dock" width="800">
+</p>
+
+<table>
+  <tr>
+    <td><img src="docs/clean-tv/home-diwali.jpg" alt="Home during Diwali, with a festival wallpaper behind the glass"></td>
+    <td><img src="docs/clean-tv/settings.jpg" alt="The two-column Settings screen: TV settings, Inputs, Wallpaper, Default home, layout, glass opacity and Home options"></td>
+    <td><img src="docs/clean-tv/settings-wallpaper.jpg" alt="The Wallpaper settings screen: themes for every day and each festival, how often the picture changes, order, and which pictures are in the rotation"></td>
+  </tr>
+  <tr>
+    <td align="center">A festival wallpaper (Diwali)</td>
+    <td align="center">Settings</td>
+    <td align="center">Wallpaper settings</td>
+  </tr>
+</table>
+
+<sub>Screenshots from a real TV. The greeting normally ends with your name.</sub>
+
 ## What this fork adds
 
 - **Dashboard Home** (`themes/dashboard`): frosted glass panels over a rotating wallpaper, with a big clock, sunrise and sunset, weather with India's CPCB AQI, a 5-app dock, a **For You** shelf of IMDb-rated posters, an optional **Arcade** panel, Search and Ask (voice assistant) pills. Everything fades when idle so the wallpaper shows.
